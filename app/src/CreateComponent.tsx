@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import cover from "@mapbox/tile-cover";
@@ -6,6 +7,7 @@ import tilebelt from "@mapbox/tilebelt";
 import "leaflet-editable";
 
 const LIMIT = 100000000;
+const OSMX_ENDPOINT = "http://localhost:8080";
 
 function CreateComponent() {
   const mapContainerRef = useRef();
@@ -14,7 +16,10 @@ function CreateComponent() {
   const canvasPromiseRef = useRef();
   const heatmapRef = useRef();
   const isDrawingRectangleRef = useRef(false);
-  const [region, setRegion] = useState();
+  const [regionType, setRegionType] = useState();
+  const [regionData, setRegionData] = useState();
+  const [estimatedNodes, setEstimatedNodes] = useState<number>();
+  const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
 
   const setGeom = () => {
     var l = leafletLayerSelectionRef.current.getLatLngs()[0];
@@ -41,7 +46,8 @@ function CreateComponent() {
       // because the leaflet.draw is not perfectly rectangular
       // minLat,minLon,maxLat,maxLon
       var bbox = [l[2].lat, l[2].lng, l[0].lat, l[0].lng];
-      setRegion({ type: "bbox", data: bbox });
+      setRegionType("bbox");
+      setRegionData(bbox);
       geojson = {
         type: "Polygon",
         coordinates: [
@@ -57,11 +63,9 @@ function CreateComponent() {
     } else {
       var geocoords = l.map((c) => [c.lng, c.lat]);
       geocoords.push(geocoords[0]);
-      setRegion({
-        type: "geojson",
-        data: { type: "Polygon", coordinates: [geocoords] },
-      });
+      setRegionType("geojson");
       geojson = { type: "Polygon", coordinates: [geocoords] };
+      setRegionData(geojson);
     }
 
     canvasPromiseRef.current.then((arr) => {
@@ -144,15 +148,23 @@ function CreateComponent() {
             return {
               stroke: false,
               fillColor: getClass(feature.properties.pxl),
-              fillOpacity: 0.2,
+              fillOpacity: 0.4,
             };
           },
         },
       );
       heatmapRef.current.addTo(mapRef.current);
-      console.log("Estimate of nodes:", estimate);
+      setEstimatedNodes(estimate);
     });
   };
+
+  useEffect(() => {
+    fetch(OSMX_ENDPOINT + "/timestamp")
+      .then((x) => x.text())
+      .then((t) => {
+        setUpdatedTimestamp(formatDistanceToNow(parseISO(t.trim())));
+      });
+  }, []);
 
   useEffect(() => {
     const img = new Image();
@@ -190,7 +202,8 @@ function CreateComponent() {
   const reset = (isFile) => {
     if (leafletLayerSelectionRef.current) {
       leafletLayerSelectionRef.current.remove();
-      setRegion(null);
+      setRegionType("");
+      setRegionData(null);
     }
     // files = [];
     // if (!isFile) fileInput.value = "";
@@ -214,9 +227,26 @@ function CreateComponent() {
     isDrawingRectangleRef.current = true;
   };
 
+  const create = () => {
+    fetch(OSMX_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        RegionType: regionType,
+        RegionData: regionData,
+        Name: name,
+      }),
+    })
+      .then((x) => {
+        return x.text();
+      })
+      .then((t) => {
+        window.location = "/show/?uuid=" + t;
+      });
+  };
+
   return (
-    <div className="flex flex-grow flex-col h-screen">
-      <div className="flex flex-grow" style={{ minHeight: 0 }}>
+    <div className="flex flex-grow flex-col">
+      <div className="flex flex-grow">
         <div className="w-1/2 lg:w-1/4 overflow-y-auto">
           <div className="flex flex-grow">
             <div className="m-4">
@@ -234,7 +264,7 @@ function CreateComponent() {
                 >
                   <circle cx="4" cy="4" r="3" />
                 </svg>
-                Data updated n ago
+                Data updated {updatedTimestamp} ago
               </span>
               <button
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium text-white bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green active:bg-green-700 transition duration-150 ease-in-out mt-6"
@@ -269,27 +299,34 @@ function CreateComponent() {
                   placeholder="Null Island, Earth"
                 />
               </div>
+              Estimated nodes: {estimatedNodes}
               <span className="inline-flex w-full shadow-sm mt-6">
                 <button
                   type="button"
                   className="w-full items-center px-6 py-3 border border-transparent text-base leading-6 font-medium text-white bg-green-600 hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green active:bg-green-700 transition ease-in-out duration-150"
+                  onClick={create}
                 >
                   Create Extract
                 </button>
               </span>
-              Downloaded files are distributed under the{" "}
-              <a
-                className="green"
-                href="https://www.openstreetmap.org/copyright"
-              >
-                ODbL.
-              </a>
-              <br />
+              <div className="text-sm mt-1 text-gray-500">
+                Downloaded files are licensed{" "}
+                <a
+                  className="text-green-800"
+                  href="https://www.openstreetmap.org/copyright"
+                >
+                  ODbL.
+                </a>
+              </div>
             </div>
           </div>
         </div>
         <div className="w-1/2 lg:w-3/4 flex">
-          <div ref={mapContainerRef} className="flex flex-grow z-0"></div>
+          <div
+            ref={mapContainerRef}
+            className="flex flex-grow z-0"
+            style={{ height: "100vh" }}
+          ></div>
         </div>
       </div>
     </div>
