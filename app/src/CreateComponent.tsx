@@ -5,9 +5,9 @@ import "leaflet/dist/leaflet.css";
 import cover from "@mapbox/tile-cover";
 import tilebelt from "@mapbox/tilebelt";
 import "leaflet-editable";
+import { OSMX_ENDPOINT } from "./common";
 
 const LIMIT = 100000000;
-const OSMX_ENDPOINT = "http://localhost:8080";
 
 function CreateComponent() {
   const mapContainerRef = useRef();
@@ -251,10 +251,10 @@ function CreateComponent() {
           <div className="flex flex-grow">
             <div className="m-4">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Create OpenStreetMap Extract
+                Download OpenStreetMap
               </h3>
               <p className="mt-1 max-w-2xl text-sm leading-5 text-gray-500">
-                Download areas of raw OpenStreetMap data.
+                Extract areas of raw OpenStreetMap data.
               </p>
               <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium leading-5 bg-green-100 text-green-800 mt-2">
                 <svg
