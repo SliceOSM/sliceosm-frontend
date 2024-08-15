@@ -16,7 +16,7 @@ export const Header = () => {
         </span>
         <span>
           <a onClick={() => setShowModal(true)}>About</a>
-          <a>GitHub</a>
+          <a href="https://github.com/bdon/osm-downloads-ui" target="_blank">GitHub</a>
         </span>
       </div>
       { showModal ? <div className="lightbox" onClick={() => setShowModal(false)}>
@@ -24,9 +24,9 @@ export const Header = () => {
           <h1>About</h1>
 
           <ul>
-            <li>Terra Draw by James Milner</li>
-            <li>Americana Map</li>
-            <li>OSM Express Database</li>
+            <li><a href="http://terradraw.io" target="_blank">Terra Draw</a> by <a href="https://github.com/JamesLMilner">James Milner</a></li>
+            <li><a href="https://americanamap.org" target="_blank">Americana Map</a></li>
+            <li><a href="https://github.com/protomaps/OSMExpress" target="_blank">OSM Express</a> Database</li>
           </ul>
         </div>
       </div> : null }
