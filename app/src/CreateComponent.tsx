@@ -5,7 +5,15 @@ import { formatDistanceToNow, parseISO } from "date-fns";
 import { OSMX_ENDPOINT, Header } from "./Common";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { TerraDraw, TerraDrawPolygonMode, TerraDrawMapLibreGLAdapter } from "terra-draw";
+import {
+  TerraDraw,
+  TerraDrawSelectMode,
+  TerraDrawRectangleMode,
+  TerraDrawAngledRectangleMode,
+  TerraDrawPolygonMode,
+  TerraDrawCircleMode,
+  TerraDrawMapLibreGLAdapter,
+} from "terra-draw";
 import { polygonToCells, cellsToMultiPolygon, H3Index } from "h3-js";
 import "./reset.css";
 import "./main.css";
@@ -13,13 +21,24 @@ import { Polygon, MultiPolygon } from "geojson";
 
 const LIMIT = 100000000;
 
-const estimateH3 = (polygons:Polygon[]):{nodes: number, geojson: MultiPolygon} => {
-  let cells:H3Index[] = [];
+const estimateH3 = (
+  polygons: Polygon[],
+): { nodes: number; geojson: MultiPolygon } => {
+  let cells: H3Index[] = [];
   for (const polygon of polygons) {
-    cells = [...cells, ...polygonToCells(polygon.coordinates as number[][][], 5, true)];
+    cells = [
+      ...cells,
+      ...polygonToCells(polygon.coordinates as number[][][], 5, true),
+    ];
   }
-  return {nodes: 0, geojson: {type:"MultiPolygon",coordinates:cellsToMultiPolygon(cells, true)}};
-}
+  return {
+    nodes: 0,
+    geojson: {
+      type: "MultiPolygon",
+      coordinates: cellsToMultiPolygon(cells, true),
+    },
+  };
+};
 
 function CreateComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +58,7 @@ function CreateComponent() {
   useEffect(() => {
     const map = new maplibregl.Map({
       style: "https://americanamap.org/style.json",
-      container: mapContainerRef.current!
+      container: mapContainerRef.current!,
     });
     mapRef.current = map;
 
@@ -48,32 +67,71 @@ function CreateComponent() {
         type: "geojson",
         data: {
           type: "MultiPolygon",
-          coordinates: [[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]
-        }
+          coordinates: [],
+        },
       });
       map.addLayer({
-          'id': 'heatmap',
-          'type': 'fill',
-          'source': 'heatmap',
-          'paint': {
-              'fill-color': 'red'
-          }
+        id: "heatmap",
+        type: "fill",
+        source: "heatmap",
+        paint: {
+          "fill-color": "red",
+        },
       });
-    })
+    });
 
-    const draw = new TerraDraw({ 
+    const draw = new TerraDraw({
       adapter: new TerraDrawMapLibreGLAdapter({ map: map, lib: maplibregl }),
-      modes: [new TerraDrawPolygonMode()] })
+      modes: [
+        new TerraDrawSelectMode({
+          keyEvents: {
+            delete: "Backspace",
+            deselect: null,
+            rotate: null,
+            scale: null
+          },
+          styles: {
+            selectedPolygonOutlineColor: "#0000ff",
+            selectedPolygonOutlineWidth: 2,
+            selectedPolygonColor: "#0000ff",
+            selectionPointColor: "#0000ff",
+            selectionPointOutlineWidth: 2,
+          },
+          flags: {
+            rectangle: {
+              feature: {}
+            },
+            "angled-rectangle": {
+              feature: {}
+            },
+            polygon: {
+              feature: {
+                coordinates: {
+                  draggable: true,
+                },
+              },
+            },
+            circle: {
+              feature: {}
+            },
+          },
+        }),
+        new TerraDrawRectangleMode(),
+        new TerraDrawAngledRectangleMode(),
+        new TerraDrawPolygonMode(),
+        new TerraDrawCircleMode(),
+      ],
+    });
     draw.start();
-    draw.setMode("polygon");
     draw.on("finish", () => {
-      const features = draw.getSnapshot().map(f => f.geometry);
+      const features = draw.getSnapshot().map((f) => f.geometry);
       const estimate = estimateH3(features as Polygon[]);
       const heatmap = map.getSource("heatmap") as maplibregl.GeoJSONSource;
       if (heatmap) {
         heatmap.setData(estimate.geojson);
       }
-    })
+      draw.setMode("select");
+    });
     drawRef.current = draw;
 
     return () => {
@@ -84,23 +142,35 @@ function CreateComponent() {
   }, []);
 
   const create = () => {
-    window.location.href = "/show/?uuid=abc"
-  }
+    window.location.href = "/show/?uuid=abc";
+  };
+
+  const startMode = (mode: string) => {
+    console.log("start mode", mode);
+    if (drawRef.current) {
+      drawRef.current.setMode(mode);
+    }
+  };
 
   return (
     <div className="main">
-      <Header/>
+      <Header />
       <div className="content">
         <div className="sidebar">
-          { updatedTimestamp }
-          <textarea value="abcd"/>
-          <button className="create" onClick={create}>Create</button>
+          {updatedTimestamp}
+          <button onClick={() => startMode("rectangle")}>Rectangle</button>
+          <button onClick={() => startMode("angled-rectangle")}>
+            Angled Rectangle
+          </button>
+          <button onClick={() => startMode("polygon")}>Polygon</button>
+          <button onClick={() => startMode("circle")}>Circle</button>
+          <textarea value="abcd" />
+          <button className="create" onClick={create}>
+            Create
+          </button>
         </div>
         <div className="mapContainer">
-          <div
-            ref={mapContainerRef}
-            className="map"
-          ></div>
+          <div ref={mapContainerRef} className="map"></div>
         </div>
       </div>
     </div>
