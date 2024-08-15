@@ -20,6 +20,8 @@
     "terra-draw": "^1.0.0-beta.1"
   },
   "devDependencies": {
+    "@types/mapbox__tile-cover": "^3.0.4",
+    "@types/mapbox__tilebelt": "^1.0.4",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
