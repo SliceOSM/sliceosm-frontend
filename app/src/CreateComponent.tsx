@@ -93,6 +93,7 @@ function CreateComponent() {
         <div className="sidebar">
           { updatedTimestamp }
           <textarea value="abcd"/>
+          <button>Create</button>
         </div>
         <div className="mapContainer">
           <div
