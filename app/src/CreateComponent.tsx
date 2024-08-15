@@ -71,11 +71,20 @@ function CreateComponent() {
         },
       });
       map.addLayer({
-        id: "heatmap",
+        id: "heatmap-fill",
         type: "fill",
         source: "heatmap",
         paint: {
-          "fill-color": "red",
+          "fill-color": "steelblue",
+          "fill-opacity": 0.5
+        },
+      });
+      map.addLayer({
+        id: "heatmap-stroke",
+        type: "line",
+        source: "heatmap",
+        paint: {
+          "line-color": "steelblue"
         },
       });
     });
@@ -123,14 +132,25 @@ function CreateComponent() {
       ],
     });
     draw.start();
-    draw.on("finish", () => {
+
+    const doEstimate = () => {
       const features = draw.getSnapshot().map((f) => f.geometry);
       const estimate = estimateH3(features as Polygon[]);
       const heatmap = map.getSource("heatmap") as maplibregl.GeoJSONSource;
       if (heatmap) {
         heatmap.setData(estimate.geojson);
       }
+    }
+
+    draw.on("finish", () => {
+      doEstimate();
       draw.setMode("select");
+    });
+
+    draw.on("change", (_: (string | number )[], type: string) => {
+      if (type === "delete") {
+        doEstimate();
+      }
     });
     drawRef.current = draw;
 
@@ -164,7 +184,11 @@ function CreateComponent() {
           </button>
           <button onClick={() => startMode("polygon")}>Polygon</button>
           <button onClick={() => startMode("circle")}>Circle</button>
+          <div>
+          <input placeholder="name this area..." />
+          <p>Paste bbox or GeoJSON:</p>
           <textarea value="abcd" />
+          </div>
           <button className="create" onClick={create}>
             Create
           </button>

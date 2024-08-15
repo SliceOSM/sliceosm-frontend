@@ -60,3 +60,24 @@ body {
   height: 40px;
   cursor: pointer;
 }
+
+textarea {
+  width: 100%;
+}
+
+.lightbox {
+  position: absolute;
+  height: calc(100vh - 30px);
+  width: 100%;
+  background-color: rgba(0,0,0,0.4);
+  z-index: 99;
+  display: flex;
+  justify-content: center;
+}
+
+.about {
+  max-width: 800px;
+  padding: 12px;
+  background-color: white;
+  height: 80%;
+}
