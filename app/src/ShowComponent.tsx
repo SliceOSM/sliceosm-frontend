@@ -18,7 +18,7 @@ function ShowComponent() {
       .then((j) => {
         setName(j.Name);
         if (j.SanitizedRegionType === "geojson") {
-          var geojson = j.SanitizedRegionData;
+          const geojson = j.SanitizedRegionData;
           const poly_coords = geojson.coordinates[0]
             .slice(0, -1)
             .map((x:[number, number]) => [x[1], x[0]]);

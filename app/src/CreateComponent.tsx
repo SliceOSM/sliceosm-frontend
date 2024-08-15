@@ -28,7 +28,7 @@ function CreateComponent() {
   }, []);
 
   useEffect(() => {
-    var map = new maplibregl.Map({
+    const map = new maplibregl.Map({
       style: "https://americanamap.org/style.json",
       container: mapContainerRef.current!
     });
