@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { RESULT_ENDPOINT, Header } from "./Common";
+import { RESULT_ENDPOINT, initializeMap } from "./Common";
+import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import "./reset.css";
-import "./main.css";
 
 function ShowComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -17,10 +15,7 @@ function ShowComponent() {
   };
 
   useEffect(() => {
-    const map = new maplibregl.Map({
-      style: "https://americanamap.org/style.json",
-      container: mapContainerRef.current!
-    });
+    const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
   });
 

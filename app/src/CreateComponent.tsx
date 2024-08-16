@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow, parseISO } from "date-fns";
 // import cover from "@mapbox/tile-cover";
 // import tilebelt from "@mapbox/tilebelt";
-import { OSMX_ENDPOINT, Header } from "./Common";
+import { OSMX_ENDPOINT, initializeMap } from "./Common";
+import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
 import {
   TerraDraw,
   TerraDrawSelectMode,
@@ -15,8 +15,6 @@ import {
   TerraDrawMapLibreGLAdapter,
 } from "terra-draw";
 import { polygonToCells, cellsToMultiPolygon, H3Index } from "h3-js";
-import "./reset.css";
-import "./main.css";
 import { Polygon, MultiPolygon } from "geojson";
 
 const LIMIT = 100000000;
@@ -56,10 +54,7 @@ function CreateComponent() {
   }, []);
 
   useEffect(() => {
-    const map = new maplibregl.Map({
-      style: "https://americanamap.org/style.json",
-      container: mapContainerRef.current!,
-    });
+    const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
 
     map.on("load", () => {
@@ -76,7 +71,7 @@ function CreateComponent() {
         source: "heatmap",
         paint: {
           "fill-color": "steelblue",
-          "fill-opacity": 0.5
+          "fill-opacity": 0.5,
         },
       });
       map.addLayer({
@@ -84,7 +79,7 @@ function CreateComponent() {
         type: "line",
         source: "heatmap",
         paint: {
-          "line-color": "steelblue"
+          "line-color": "steelblue",
         },
       });
     });
@@ -97,7 +92,7 @@ function CreateComponent() {
             delete: "Backspace",
             deselect: null,
             rotate: null,
-            scale: null
+            scale: null,
           },
           styles: {
             selectedPolygonOutlineColor: "#0000ff",
@@ -108,10 +103,10 @@ function CreateComponent() {
           },
           flags: {
             rectangle: {
-              feature: {}
+              feature: {},
             },
             "angled-rectangle": {
-              feature: {}
+              feature: {},
             },
             polygon: {
               feature: {
@@ -121,7 +116,7 @@ function CreateComponent() {
               },
             },
             circle: {
-              feature: {}
+              feature: {},
             },
           },
         }),
@@ -140,14 +135,14 @@ function CreateComponent() {
       if (heatmap) {
         heatmap.setData(estimate.geojson);
       }
-    }
+    };
 
     draw.on("finish", () => {
       doEstimate();
       draw.setMode("select");
     });
 
-    draw.on("change", (_: (string | number )[], type: string) => {
+    draw.on("change", (_: (string | number)[], type: string) => {
       if (type === "delete") {
         doEstimate();
       }
@@ -185,9 +180,9 @@ function CreateComponent() {
           <button onClick={() => startMode("polygon")}>Polygon</button>
           <button onClick={() => startMode("circle")}>Circle</button>
           <div>
-          <input placeholder="name this area..." />
-          <p>Paste bbox or GeoJSON:</p>
-          <textarea value="abcd" />
+            <input placeholder="name this area..." />
+            <p>Paste bbox or GeoJSON:</p>
+            <textarea value="abcd" />
           </div>
           <button className="create" onClick={create}>
             Create
