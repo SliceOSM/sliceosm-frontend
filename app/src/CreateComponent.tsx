@@ -109,7 +109,7 @@ const estimateWebMercatorTile = async (
     });
   });
   return {
-    nodes: sum,
+    nodes: sum * 32,
     geojson: { type: "FeatureCollection", features: cells },
   };
 };
@@ -119,7 +119,7 @@ const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
   const canvas = document.createElement("canvas");
   canvas.width = 4096;
   canvas.height = 4096;
-  const context = canvas.getContext("2d")!;
+  const context = canvas.getContext("2d", { willReadFrequently: true })!;
   return new Promise((resolve) => {
     img.addEventListener("load", () => {
       context.drawImage(img, 0, 0);
@@ -135,6 +135,7 @@ function CreateComponent() {
   const drawRef = useRef<TerraDraw>();
   const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
   const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
+  const [nodesEstimate, setNodesEstimate] = useState<number>(0);
 
   useEffect(() => {
     canvasPromiseRef.current = loadWebMercatorTile();
@@ -235,6 +236,7 @@ function CreateComponent() {
       if (heatmap) {
         heatmap.setData(estimate.geojson);
       }
+      setNodesEstimate(estimate.nodes);
     };
 
     draw.on("finish", () => {
@@ -283,6 +285,7 @@ function CreateComponent() {
             <p>Paste bbox or GeoJSON:</p>
             <textarea value="abcd" />
           </div>
+          <p>Estimated nodes: {nodesEstimate}</p>
           <button className="create" onClick={create}>
             Create
           </button>
