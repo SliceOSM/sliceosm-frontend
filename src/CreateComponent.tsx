@@ -133,7 +133,7 @@ function CreateComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map>();
   const drawRef = useRef<TerraDraw>();
-  const [textAreaValue, setTextAreaValue] = useState<string>('');
+  const [textAreaValue, setTextAreaValue] = useState<string>("");
   const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
   const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
   const [nodesEstimate, setNodesEstimate] = useState<number>(0);
@@ -246,7 +246,7 @@ function CreateComponent() {
     });
 
     draw.on("change", (_: (string | number)[], type: string) => {
-      if (type === "delete") {
+      if (type === "delete" || type === "create") {
         doEstimate();
       }
     });
@@ -270,11 +270,49 @@ function CreateComponent() {
   };
 
   const loadTextArea = () => {
+    if (!drawRef.current || !mapRef.current) return;
     const isBbox = /^(\d+(\.\d+)?,){3}\d+(\.\d+)?$/;
     if (isBbox.test(textAreaValue)) {
-      console.log("it is a bbox");
+      const arr = textAreaValue.split(",");
+      const minX = +arr[0];
+      const minY = +arr[1];
+      const maxX = +arr[2];
+      const maxY = +arr[3];
+      drawRef.current.clear();
+      drawRef.current.addFeatures([
+        {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [minX, minY],
+                [minX, maxY],
+                [maxX, maxY],
+                [maxX, minY],
+                [minX, minY],
+              ],
+            ],
+          },
+          properties: {
+            mode: "polygon",
+          },
+        },
+      ]);
+      drawRef.current.setMode("select");
+      mapRef.current.fitBounds(
+        [
+          [minX, minY],
+          [maxX, maxY],
+        ],
+        { padding: 60, animate: false },
+      );
     } else {
-      console.log("it is geojson");
+      const parsed = JSON.parse(textAreaValue);
+      parsed.properties.mode = "polygon";
+      drawRef.current.clear();
+      drawRef.current.addFeatures([parsed]);
+      drawRef.current.setMode("select");
     }
   };
 
@@ -292,7 +330,10 @@ function CreateComponent() {
           <button onClick={() => startMode("circle")}>Circle</button>
           <div>
             <p>Paste bbox or GeoJSON:</p>
-            <textarea value={textAreaValue} onChange={e => setTextAreaValue(e.target.value)} />
+            <textarea
+              value={textAreaValue}
+              onChange={(e) => setTextAreaValue(e.target.value)}
+            />
             <button onClick={loadTextArea}>Load</button>
           </div>
           <p>Estimated nodes: {nodesEstimate}</p>
