@@ -133,6 +133,7 @@ function CreateComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map>();
   const drawRef = useRef<TerraDraw>();
+  const [textAreaValue, setTextAreaValue] = useState<string>('');
   const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
   const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
   const [nodesEstimate, setNodesEstimate] = useState<number>(0);
@@ -268,6 +269,15 @@ function CreateComponent() {
     }
   };
 
+  const loadTextArea = () => {
+    const isBbox = /^(\d+(\.\d+)?,){3}\d+(\.\d+)?$/;
+    if (isBbox.test(textAreaValue)) {
+      console.log("it is a bbox");
+    } else {
+      console.log("it is geojson");
+    }
+  };
+
   return (
     <div className="main">
       <Header />
@@ -281,11 +291,12 @@ function CreateComponent() {
           <button onClick={() => startMode("polygon")}>Polygon</button>
           <button onClick={() => startMode("circle")}>Circle</button>
           <div>
-            <input placeholder="name this area..." />
             <p>Paste bbox or GeoJSON:</p>
-            <textarea value="abcd" />
+            <textarea value={textAreaValue} onChange={e => setTextAreaValue(e.target.value)} />
+            <button onClick={loadTextArea}>Load</button>
           </div>
           <p>Estimated nodes: {nodesEstimate}</p>
+          <input placeholder="name this area..." />
           <button className="create" onClick={create}>
             Create
           </button>
