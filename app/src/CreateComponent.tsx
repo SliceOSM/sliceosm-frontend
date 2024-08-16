@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow, parseISO } from "date-fns";
-// import cover from "@mapbox/tile-cover";
-// import tilebelt from "@mapbox/tilebelt";
+import cover from "@mapbox/tile-cover";
+import tilebelt from "@mapbox/tilebelt";
 import { OSMX_ENDPOINT, initializeMap } from "./Common";
 import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
@@ -15,13 +15,13 @@ import {
   TerraDrawMapLibreGLAdapter,
 } from "terra-draw";
 import { polygonToCells, cellsToMultiPolygon, H3Index } from "h3-js";
-import { Polygon, MultiPolygon } from "geojson";
+import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 
 const LIMIT = 100000000;
 
 const estimateH3 = (
   polygons: Polygon[],
-): { nodes: number; geojson: MultiPolygon } => {
+): { nodes: number; geojson: FeatureCollection } => {
   let cells: H3Index[] = [];
   for (const polygon of polygons) {
     cells = [
@@ -32,10 +32,101 @@ const estimateH3 = (
   return {
     nodes: 0,
     geojson: {
-      type: "MultiPolygon",
-      coordinates: cellsToMultiPolygon(cells, true),
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: cellsToMultiPolygon(cells, true),
+          },
+          properties: {},
+        },
+      ],
     },
   };
+};
+
+const estimateWebMercatorTile = async (
+  polygons: Polygon[],
+  canvas: Promise<Uint8ClampedArray>,
+): Promise<{ nodes: number; geojson: FeatureCollection }> => {
+  const arr = await canvas;
+  const getPixel = (base: number, z: number, x: number, y: number): number => {
+    // uses the red channel and green channel
+    if (z < base) {
+      const dz = Math.pow(2, base - z);
+      let retval = 0;
+      for (let ix = x * dz; ix < x * dz + dz; ix++) {
+        for (let iy = y * dz; iy < y * dz + dz; iy++) {
+          const red = arr[4 * 4096 * iy + 4 * ix];
+          const green = arr[4 * 4096 * iy + 4 * ix + 1];
+          retval += red * 256 + green;
+        }
+      }
+      return retval;
+    } else if (z === base) {
+      const red = arr[4 * 4096 * y + 4 * x];
+      const green = arr[4 * 4096 * y + 4 * x + 1];
+      return red * 256 + green;
+    } else {
+      // z > base
+      const dz = Math.pow(2, z - base);
+      x = Math.floor(x / dz);
+      y = Math.floor(y / dz);
+      const red = arr[4 * 4096 * y + 4 * x];
+      const green = arr[4 * 4096 * y + 4 * x + 1];
+      return (red * 256 + green) / (dz * dz);
+    }
+  };
+
+  let limits;
+  let covering;
+
+  const mp: MultiPolygon = {
+    type: "MultiPolygon",
+    coordinates: polygons.map((p) => p.coordinates),
+  };
+
+  for (let cz = 0; cz <= 14; cz++) {
+    limits = { min_zoom: cz, max_zoom: cz };
+    covering = cover.tiles(mp, limits);
+    if (covering.length > 256) break;
+  }
+
+  const cells: Feature[] = [];
+  let max_pxl = -Infinity;
+  let sum = 0;
+
+  covering!.forEach((t) => {
+    const pxl = getPixel(12, t[2], t[0], t[1]);
+    sum += pxl;
+    if (pxl > max_pxl) max_pxl = pxl;
+    cells.push({
+      type: "Feature",
+      geometry: tilebelt.tileToGeoJSON(t),
+      properties: { pxl: pxl },
+    });
+  });
+  return {
+    nodes: sum,
+    geojson: { type: "FeatureCollection", features: cells },
+  };
+};
+
+const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
+  const img = new Image();
+  const canvas = document.createElement("canvas");
+  canvas.width = 4096;
+  canvas.height = 4096;
+  const context = canvas.getContext("2d")!;
+  return new Promise((resolve) => {
+    img.addEventListener("load", () => {
+      context.drawImage(img, 0, 0);
+      resolve(context.getImageData(0, 0, 4096, 4096).data);
+    });
+    img.src = "/z12_red_green.png";
+  });
 };
 
 function CreateComponent() {
@@ -43,6 +134,11 @@ function CreateComponent() {
   const mapRef = useRef<maplibregl.Map>();
   const drawRef = useRef<TerraDraw>();
   const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
+  const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
+
+  useEffect(() => {
+    canvasPromiseRef.current = loadWebMercatorTile();
+  }, []);
 
   useEffect(() => {
     fetch(OSMX_ENDPOINT + "/timestamp")
@@ -61,8 +157,8 @@ function CreateComponent() {
       map.addSource("heatmap", {
         type: "geojson",
         data: {
-          type: "MultiPolygon",
-          coordinates: [],
+          type: "FeatureCollection",
+          features: [],
         },
       });
       map.addLayer({
@@ -128,9 +224,13 @@ function CreateComponent() {
     });
     draw.start();
 
-    const doEstimate = () => {
+    const doEstimate = async () => {
       const features = draw.getSnapshot().map((f) => f.geometry);
-      const estimate = estimateH3(features as Polygon[]);
+      console.log(estimateH3);
+      const estimate = await estimateWebMercatorTile(
+        features as Polygon[],
+        canvasPromiseRef.current!,
+      );
       const heatmap = map.getSource("heatmap") as maplibregl.GeoJSONSource;
       if (heatmap) {
         heatmap.setData(estimate.geojson);
@@ -161,7 +261,6 @@ function CreateComponent() {
   };
 
   const startMode = (mode: string) => {
-    console.log("start mode", mode);
     if (drawRef.current) {
       drawRef.current.setMode(mode);
     }
