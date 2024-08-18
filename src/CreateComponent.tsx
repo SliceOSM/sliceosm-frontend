@@ -275,7 +275,7 @@ function CreateComponent() {
       RegionData: regionData,
       Name: name,
     };
-    const result = await fetch(API_ENDPOINT, {
+    const result = await fetch(`${API_ENDPOINT}/`, {
       method: "POST",
       body: JSON.stringify(body),
     });
