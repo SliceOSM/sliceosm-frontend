@@ -14,37 +14,17 @@ import {
   TerraDrawCircleMode,
   TerraDrawMapLibreGLAdapter,
 } from "terra-draw";
-import { polygonToCells, cellsToMultiPolygon, H3Index } from "h3-js";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 
 const LIMIT = 100000000;
 
-const estimateH3 = (
-  polygons: Polygon[],
-): { nodes: number; geojson: FeatureCollection } => {
-  let cells: H3Index[] = [];
-  for (const polygon of polygons) {
-    cells = [
-      ...cells,
-      ...polygonToCells(polygon.coordinates as number[][][], 5, true),
-    ];
-  }
-  return {
-    nodes: 0,
-    geojson: {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: {
-            type: "MultiPolygon",
-            coordinates: cellsToMultiPolygon(cells, true),
-          },
-          properties: {},
-        },
-      ],
-    },
-  };
+const degeneratePolygon = (p: Polygon) => {
+  if (p.coordinates.length === 0) return true;
+  const ring = p.coordinates[0];
+  const [firstPoint] = ring;
+  return ring.every(
+    (point) => point[0] === firstPoint[0] && point[1] === firstPoint[1],
+  );
 };
 
 const estimateWebMercatorTile = async (
@@ -227,8 +207,10 @@ function CreateComponent() {
     draw.start();
 
     const doEstimate = async () => {
-      const features = draw.getSnapshot().map((f) => f.geometry);
-      console.log(estimateH3);
+      const features = draw
+        .getSnapshot()
+        .map((f) => f.geometry)
+        .filter((p) => !degeneratePolygon(p as Polygon));
       const estimate = await estimateWebMercatorTile(
         features as Polygon[],
         canvasPromiseRef.current!,
