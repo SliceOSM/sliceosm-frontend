@@ -130,7 +130,7 @@ function CreateComponent() {
   }, []);
 
   useEffect(() => {
-    fetch(API_ENDPOINT)
+    fetch(`${API_ENDPOINT}/`)
       .then((x) => x.json())
       .then((j) => {
         setUpdatedTimestamp(formatDistanceToNow(parseISO(j.Timestamp)));
