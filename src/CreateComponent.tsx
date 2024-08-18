@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import cover from "@mapbox/tile-cover";
 import tilebelt from "@mapbox/tilebelt";
-import { OSMX_ENDPOINT, initializeMap } from "./Common";
+import { API_ENDPOINT, initializeMap } from "./Common";
 import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
 import {
@@ -130,7 +130,7 @@ function CreateComponent() {
   }, []);
 
   useEffect(() => {
-    fetch(OSMX_ENDPOINT)
+    fetch(API_ENDPOINT)
       .then((x) => x.json())
       .then((j) => {
         setUpdatedTimestamp(formatDistanceToNow(parseISO(j.Timestamp)));
@@ -275,7 +275,7 @@ function CreateComponent() {
       RegionData: regionData,
       Name: name,
     };
-    const result = await fetch(OSMX_ENDPOINT, {
+    const result = await fetch(API_ENDPOINT, {
       method: "POST",
       body: JSON.stringify(body),
     });

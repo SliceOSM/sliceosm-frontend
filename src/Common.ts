@@ -1,5 +1,5 @@
-export const OSMX_ENDPOINT = "http://localhost:8080";
-export const RESULT_ENDPOINT = "http://localhost:8500";
+export const API_ENDPOINT = (import.meta.env.VITE_API_ENDPOINT || "/api");
+export const FILES_ENDPOINT = (import.meta.env.VITE_FILES_ENDPOINT || "/files");
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 

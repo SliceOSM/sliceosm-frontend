@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { OSMX_ENDPOINT, RESULT_ENDPOINT, initializeMap } from "./Common";
+import { API_ENDPOINT, FILES_ENDPOINT, initializeMap } from "./Common";
 import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
 
@@ -11,7 +11,7 @@ function ShowComponent() {
   const download = () => {
     const query = new URLSearchParams(location.search);
     const uuid = query.get("uuid");
-    window.location.href = `${RESULT_ENDPOINT}/${uuid}.osm.pbf`;
+    window.location.href = `${FILES_ENDPOINT}/${uuid}.osm.pbf`;
   };
 
   useEffect(() => {
@@ -22,7 +22,7 @@ function ShowComponent() {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     const uuid = query.get("uuid");
-    fetch(`${OSMX_ENDPOINT}/${uuid}`)
+    fetch(`${API_ENDPOINT}/${uuid}`)
       .then((x) => x.json())
       .then((j) => {
         console.log(j);
