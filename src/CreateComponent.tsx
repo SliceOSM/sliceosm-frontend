@@ -279,7 +279,7 @@ function CreateComponent() {
       method: "POST",
       body: JSON.stringify(body),
     });
-    if (result.statusCode === "201") {
+    if (result.status === 201) {
       const uuid = await result.text();
       window.location.href = `/show/?uuid=${uuid}`;
     } else {
