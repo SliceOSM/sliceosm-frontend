@@ -16,8 +16,6 @@ import {
 } from "terra-draw";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 
-const LIMIT = 100000000;
-
 const degeneratePolygon = (p: Polygon) => {
   if (p.coordinates.length === 0) return true;
   const ring = p.coordinates[0];
@@ -110,25 +108,36 @@ const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
 };
 
 function CreateComponent() {
+  // data fetched from server
+  const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
+  const nodesLimitRef = useRef<Promise<number>>();
+  const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
+
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map>();
   const drawRef = useRef<TerraDraw>();
+
   const [textAreaValue, setTextAreaValue] = useState<string>("");
-  const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
-  const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
   const [nodesEstimate, setNodesEstimate] = useState<number>(0);
+  const [regionType, setRegionType] = useState<string>();
+  const [regionData, setRegionData] = useState<
+    string | Polygon | MultiPolygon
+  >();
+  const [name, setName] = useState<string>("");
 
   useEffect(() => {
     canvasPromiseRef.current = loadWebMercatorTile();
   }, []);
 
   useEffect(() => {
-    fetch(OSMX_ENDPOINT + "/timestamp")
-      .then((x) => x.text())
-      .then((t) => {
-        setUpdatedTimestamp(formatDistanceToNow(parseISO(t.trim())));
+    fetch(OSMX_ENDPOINT)
+      .then((x) => x.json())
+      .then((j) => {
+        setUpdatedTimestamp(formatDistanceToNow(parseISO(j.Timestamp)));
+        nodesLimitRef.current = new Promise((resolve) => {
+          resolve(j.NodesLimit);
+        });
       });
-    console.log(LIMIT);
   }, []);
 
   useEffect(() => {
@@ -136,30 +145,34 @@ function CreateComponent() {
     mapRef.current = map;
 
     map.on("load", () => {
-      map.addSource("heatmap", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: [],
-        },
-      });
-      map.addLayer({
-        id: "heatmap-fill",
-        type: "fill",
-        source: "heatmap",
-        paint: {
-          "fill-color": "steelblue",
-          "fill-opacity": 0.5,
-        },
-      });
-      map.addLayer({
-        id: "heatmap-stroke",
-        type: "line",
-        source: "heatmap",
-        paint: {
-          "line-color": "steelblue",
-        },
-      });
+      try {
+        map.addSource("heatmap", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [],
+          },
+        });
+        map.addLayer({
+          id: "heatmap-fill",
+          type: "fill",
+          source: "heatmap",
+          paint: {
+            "fill-color": "steelblue",
+            "fill-opacity": 0.5,
+          },
+        });
+        map.addLayer({
+          id: "heatmap-stroke",
+          type: "line",
+          source: "heatmap",
+          paint: {
+            "line-color": "steelblue",
+          },
+        });
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     const draw = new TerraDraw({
@@ -206,13 +219,28 @@ function CreateComponent() {
     });
     draw.start();
 
-    const doEstimate = async () => {
-      const features = draw
+    const updateRegion = async () => {
+      const geometries = draw
         .getSnapshot()
         .map((f) => f.geometry)
-        .filter((p) => !degeneratePolygon(p as Polygon));
+        .filter((p) => !degeneratePolygon(p as Polygon)) as Polygon[];
+
+      // TODO: handle b box
+      setRegionType("geojson");
+      if (geometries.length === 1) {
+        setRegionData({
+          type: "Polygon",
+          coordinates: geometries[0].coordinates,
+        });
+      } else {
+        setRegionData({
+          type: "MultiPolygon",
+          coordinates: geometries.map((g) => g.coordinates),
+        });
+      }
+
       const estimate = await estimateWebMercatorTile(
-        features as Polygon[],
+        geometries,
         canvasPromiseRef.current!,
       );
       const heatmap = map.getSource("heatmap") as maplibregl.GeoJSONSource;
@@ -223,13 +251,13 @@ function CreateComponent() {
     };
 
     draw.on("finish", () => {
-      doEstimate();
+      updateRegion();
       draw.setMode("select");
     });
 
     draw.on("change", (_: (string | number)[], type: string) => {
       if (type === "delete" || type === "create") {
-        doEstimate();
+        updateRegion();
       }
     });
     drawRef.current = draw;
@@ -239,10 +267,20 @@ function CreateComponent() {
       mapRef.current = undefined;
       drawRef.current = undefined;
     };
-  }, []);
+  });
 
-  const create = () => {
-    window.location.href = "/show/?uuid=abc";
+  const create = async () => {
+    const body = {
+      RegionType: regionType,
+      RegionData: regionData,
+      Name: name,
+    };
+    const result = await fetch(OSMX_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    const uuid = await result.text();
+    window.location.href = `/show/?uuid=${uuid}`;
   };
 
   const startMode = (mode: string) => {
@@ -303,7 +341,7 @@ function CreateComponent() {
       <Header />
       <div className="content">
         <div className="sidebar">
-          {updatedTimestamp}
+          <p>Data updated {updatedTimestamp} ago</p>
           <button onClick={() => startMode("rectangle")}>Rectangle</button>
           <button onClick={() => startMode("angled-rectangle")}>
             Angled Rectangle
@@ -319,7 +357,11 @@ function CreateComponent() {
             <button onClick={loadTextArea}>Load</button>
           </div>
           <p>Estimated nodes: {nodesEstimate}</p>
-          <input placeholder="name this area..." />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="name this area..."
+          />
           <button className="create" onClick={create}>
             Create
           </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { RESULT_ENDPOINT, initializeMap } from "./Common";
+import { OSMX_ENDPOINT, RESULT_ENDPOINT, initializeMap } from "./Common";
 import { Header } from "./CommonComponents";
 import maplibregl from "maplibre-gl";
 
@@ -22,9 +22,10 @@ function ShowComponent() {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     const uuid = query.get("uuid");
-    fetch(`${RESULT_ENDPOINT}/${uuid}_task.json`)
+    fetch(`${OSMX_ENDPOINT}/${uuid}`)
       .then((x) => x.json())
       .then((j) => {
+        console.log(j);
         setName(j.Name);
         if (j.SanitizedRegionType === "geojson") {
           const geojson = j.SanitizedRegionData;
