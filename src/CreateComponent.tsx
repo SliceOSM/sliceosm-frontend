@@ -279,8 +279,12 @@ function CreateComponent() {
       method: "POST",
       body: JSON.stringify(body),
     });
-    const uuid = await result.text();
-    window.location.href = `/show/?uuid=${uuid}`;
+    if (result.statusCode === "201") {
+      const uuid = await result.text();
+      window.location.href = `/show/?uuid=${uuid}`;
+    } else {
+      console.log(await result.text());
+    }
   };
 
   const startMode = (mode: string) => {
