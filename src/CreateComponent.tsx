@@ -267,7 +267,7 @@ function CreateComponent() {
       mapRef.current = undefined;
       drawRef.current = undefined;
     };
-  });
+  },[]);
 
   const create = async () => {
     const body = {
