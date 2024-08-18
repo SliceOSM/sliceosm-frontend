@@ -27,10 +27,6 @@ function ShowComponent() {
   const mapRef = useRef<maplibregl.Map>();
   const [result, setResult] = useState<Result>();
 
-  const download = () => {
-    window.location.href = `${FILES_ENDPOINT}/${getUuid()}.osm.pbf`;
-  };
-
   useEffect(() => {
     const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
@@ -99,7 +95,7 @@ function ShowComponent() {
               <p>Time Elapsed {result.Elapsed}</p>
             </div>
           ) : null}
-          <button onClick={download}>Download</button>
+          <a href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`} download="myfile.osm.pbf">Download</a>
         </div>
         <div className="mapContainer">
           <div ref={mapContainerRef} className="map"></div>
