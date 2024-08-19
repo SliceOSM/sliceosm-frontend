@@ -26,6 +26,7 @@ function ShowComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map>();
   const [result, setResult] = useState<Result>();
+  const [name, setName] = useState<string>();
 
   useEffect(() => {
     const map = initializeMap(mapContainerRef.current!);
@@ -33,6 +34,7 @@ function ShowComponent() {
     fetch(`${FILES_ENDPOINT}/${getUuid()}_region.json`)
       .then((resp) => resp.json())
       .then((j) => {
+        setName(j.SanitizedName);
         map.on("load", () => {
           try {
             map.addSource("region", {
@@ -95,7 +97,7 @@ function ShowComponent() {
               <p>Time Elapsed {result.Elapsed}</p>
             </div>
           ) : null}
-          <a href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`} download="myfile.osm.pbf">Download</a>
+          <a href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`} download={`${name}.osm.pbf`}>Download</a>
         </div>
         <div className="mapContainer">
           <div ref={mapContainerRef} className="map"></div>
