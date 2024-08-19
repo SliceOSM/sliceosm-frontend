@@ -103,7 +103,8 @@ const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
       context.drawImage(img, 0, 0);
       resolve(context.getImageData(0, 0, 4096, 4096).data);
     });
-    img.src = "/z12_red_green.png";
+    img.crossOrigin = "Anonymous";
+    img.src = `${API_ENDPOINT}/nodes.png`;
   });
 };
 
