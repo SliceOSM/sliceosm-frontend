@@ -15,6 +15,7 @@ import {
   TerraDrawMapLibreGLAdapter,
 } from "terra-draw";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
+import { interpolatePurples } from "d3-scale-chromatic";
 
 const degeneratePolygon = (p: Polygon) => {
   if (p.coordinates.length === 0) return true;
@@ -85,6 +86,10 @@ const estimateWebMercatorTile = async (
       geometry: tilebelt.tileToGeoJSON(t),
       properties: { pxl: pxl },
     });
+  });
+
+  cells.forEach((cell) => {
+    cell.properties!.fill = interpolatePurples(cell.properties!.pxl / max_pxl);
   });
   return {
     nodes: sum * 32,
@@ -159,16 +164,8 @@ function CreateComponent() {
           type: "fill",
           source: "heatmap",
           paint: {
-            "fill-color": "steelblue",
+            "fill-color": ["get", "fill"],
             "fill-opacity": 0.5,
-          },
-        });
-        map.addLayer({
-          id: "heatmap-stroke",
-          type: "line",
-          source: "heatmap",
-          paint: {
-            "line-color": "steelblue",
           },
         });
       } catch (e) {
@@ -268,7 +265,7 @@ function CreateComponent() {
       mapRef.current = undefined;
       drawRef.current = undefined;
     };
-  },[]);
+  }, []);
 
   const create = async () => {
     const body = {
