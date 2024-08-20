@@ -14,13 +14,22 @@ const getUuid = () => {
 };
 
 interface Result {
-  Uuid: string;
   Timestamp: string;
+  CellsProg: number;
+  CellsTotal: number;
+  NodesProg: number;
+  NodesTotal: number;
+  ElemsProg: number;
   ElemsTotal: number;
   Complete: boolean;
   SizeBytes: number;
   Elapsed: number;
 }
+
+const progressValue = (prog: number, total: number) => {
+  if (total === 0) return 0.0;
+  return prog / total;
+};
 
 function ShowComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -29,12 +38,24 @@ function ShowComponent() {
   const [name, setName] = useState<string>();
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
-    fetch(`${FILES_ENDPOINT}/${getUuid()}_region.json`)
+    fetch(`${FILES_ENDPOINT}/${getUuid()}_region.json`, {
+      signal: abortController.signal,
+    })
       .then((resp) => resp.json())
       .then((j) => {
         setName(j.SanitizedName);
+        // if (j.SanitizedRegionType === "geojson") {
+        //   const geojson = j.SanitizedRegionData;
+        //   const poly_coords = geojson.coordina;tes[0]
+        //     .slice(0, -1)
+        //     .map((x: [number, number]) => [x[1], x[0]]);
+        // } else if (j.SanitizedRegionType === "bbox") {
+        //   const split = j.SanitizedRegionData;
+        // }
         map.on("load", () => {
           try {
             map.addSource("region", {
@@ -60,30 +81,35 @@ function ShowComponent() {
           }
         });
       });
-  });
-
-  useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const uuid = query.get("uuid");
-    fetch(`${API_ENDPOINT}/${uuid}`)
-      .then((x) => x.json())
-      .then((j) => {
-        if (j.Complete) {
-          setResult(j);
-        }
-        // if (j.SanitizedRegionType === "geojson") {
-        //   const geojson = j.SanitizedRegionData;
-        //   const poly_coords = geojson.coordina;tes[0]
-        //     .slice(0, -1)
-        //     .map((x: [number, number]) => [x[1], x[0]]);
-        // } else if (j.SanitizedRegionType === "bbox") {
-        //   const split = j.SanitizedRegionData;
-        // }
-      });
-
-    return () => {};
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
+  // fix double fetch
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const poll = async () => {
+      console.log("poll");
+      const query = new URLSearchParams(location.search);
+      const uuid = query.get("uuid");
+      const resp = await fetch(`${API_ENDPOINT}/${uuid}`, {
+        signal: abortController.signal,
+      });
+      const j = await resp.json();
+      setResult(j);
+      if (!j.Complete) {
+        setTimeout(() => poll(), 3 * 1000);
+      }
+    };
+
+    poll();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
   return (
     <div className="main">
       <Header />
@@ -92,12 +118,45 @@ function ShowComponent() {
           {result ? (
             <div>
               <p>Snapshot Time {result.Timestamp}</p>
+              <p>
+                <span>
+                  {result.CellsProg} / {result.CellsTotal} cells
+                </span>
+                <progress
+                  value={progressValue(result.CellsProg, result.CellsTotal)}
+                />
+              </p>
+              <p>
+                <span>
+                  {result.NodesProg} / {result.NodesTotal} nodes
+                </span>
+                <progress
+                  value={progressValue(result.NodesProg, result.NodesTotal)}
+                />
+              </p>
+              <p>
+                <span>
+                  {result.ElemsProg} / {result.ElemsTotal} elements
+                </span>
+                <progress
+                  value={progressValue(result.ElemsProg, result.ElemsTotal)}
+                />
+              </p>
+            </div>
+          ) : null}
+          {result && result.Complete ? (
+            <div>
               <p>Elements {result.ElemsTotal}</p>
               <p>Size {result.SizeBytes}</p>
               <p>Time Elapsed {result.Elapsed}</p>
+              <a
+                href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`}
+                download={`${name}.osm.pbf`}
+              >
+                Download
+              </a>
             </div>
           ) : null}
-          <a href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`} download={`${name}.osm.pbf`}>Download</a>
         </div>
         <div className="mapContainer">
           <div ref={mapContainerRef} className="map"></div>
