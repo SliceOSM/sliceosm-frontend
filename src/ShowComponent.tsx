@@ -151,7 +151,7 @@ function ShowComponent() {
               <p>Time Elapsed {result.Elapsed}</p>
               <a
                 href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`}
-                download={`${name}.osm.pbf`}
+                download={`${name || getUuid()}.osm.pbf`}
               >
                 Download
               </a>
