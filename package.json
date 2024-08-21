@@ -7,7 +7,8 @@
     "dev": "VITE_API_ENDPOINT=http://localhost:8080/api VITE_FILES_ENDPOINT=http://localhost:8500 vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest test"
   },
   "dependencies": {
     "@mapbox/tile-cover": "^3.0.2",
@@ -34,6 +35,7 @@
     "globals": "^15.9.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "vitest": "^2.0.5"
   }
 }
