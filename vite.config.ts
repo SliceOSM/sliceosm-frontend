@@ -8,8 +8,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        create: resolve(__dirname, "index.html"),
-        show: resolve(__dirname, "show/index.html"),
+        index: resolve(__dirname, "index.html"),
+        slice: resolve(__dirname, "slice/index.html"),
       },
     },
   },

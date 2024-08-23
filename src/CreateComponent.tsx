@@ -16,6 +16,12 @@ import {
 } from "terra-draw";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 import { interpolatePurples } from "d3-scale-chromatic";
+import {
+  default as MaplibreGeocoder,
+  MaplibreGeocoderApiConfig,
+  CarmenGeojsonFeature
+} from "@maplibre/maplibre-gl-geocoder";
+import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
 
 const degeneratePolygon = (p: Polygon) => {
   if (p.coordinates.length === 0) return true;
@@ -97,6 +103,44 @@ const estimateWebMercatorTile = async (
   };
 };
 
+const geocoderApi = {
+  reverseGeocode: async () => {
+    return {features: []};
+  },
+  forwardGeocode: async (config: MaplibreGeocoderApiConfig) => {
+    const features = [];
+    try {
+      const request = `https://nominatim.openstreetmap.org/search?q=${config.query}&format=geojson`;
+      const response = await fetch(request);
+      const geojson = await response.json();
+      for (const feature of geojson.features) {
+        const center = [
+          feature.bbox[0] + (feature.bbox[2] - feature.bbox[0]) / 2,
+          feature.bbox[1] + (feature.bbox[3] - feature.bbox[1]) / 2,
+        ];
+        const point = {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: center,
+          },
+          place_name: feature.properties.display_name,
+          properties: feature.properties,
+          text: feature.properties.display_name,
+          bbox: feature.bbox,
+        } as CarmenGeojsonFeature;
+        features.push(point);
+      }
+    } catch (e) {
+      console.error(`Failed to forwardGeocode with error: ${e}`);
+    }
+
+    return {
+      features,
+    };
+  },
+};
+
 const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
   const img = new Image();
   const canvas = document.createElement("canvas");
@@ -149,6 +193,16 @@ function CreateComponent() {
   useEffect(() => {
     const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
+
+    map.addControl(
+      new MaplibreGeocoder(geocoderApi, {
+        flyTo: { animate: false },
+        limit: 10,
+        marker: false,
+        showResultMarkers: false,
+      }),
+      "top-left",
+    );
 
     map.on("load", () => {
       try {
