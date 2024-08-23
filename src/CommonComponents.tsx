@@ -11,7 +11,7 @@ export const Header = () => {
       <div className="header">
         <span>
           <strong>
-            <a href="/">Downloads</a>
+            <a href="/">Slice OpenStreetMap</a>
           </strong>
         </span>
         <span>

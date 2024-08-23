@@ -279,7 +279,7 @@ function CreateComponent() {
     });
     if (result.status === 201) {
       const uuid = await result.text();
-      window.location.href = `/show/?uuid=${uuid}`;
+      window.location.href = `/slice/?uuid=${uuid}`;
     } else {
       console.log(await result.text());
     }
@@ -365,7 +365,7 @@ function CreateComponent() {
             placeholder="name this area..."
           />
           <button className="create" onClick={create}>
-            Create
+            Generate Slice
           </button>
         </div>
         <div className="mapContainer">
