@@ -16,7 +16,7 @@ export const Header = () => {
         </span>
         <span>
           <a onClick={() => setShowModal(true)}>About</a>
-          <a href="https://github.com/bdon/osm-downloads-ui" target="_blank">
+          <a href="https://github.com/SliceOSM" target="_blank">
             GitHub
           </a>
         </span>
