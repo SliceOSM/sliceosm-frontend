@@ -9,9 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-node@v3
         with:
-          go-version: "^1.23.0"
-      - run: go test
-      - run: go vet main.go
-      - run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+          node-version: 20.x
+      - run: npm ci && npm run build && npm run lint
