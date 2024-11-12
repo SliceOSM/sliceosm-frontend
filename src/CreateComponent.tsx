@@ -231,7 +231,7 @@ function CreateComponent() {
     });
 
     const draw = new TerraDraw({
-      adapter: new TerraDrawMapLibreGLAdapter({ map: map, lib: maplibregl }),
+      adapter: new TerraDrawMapLibreGLAdapter({ map: map }),
       modes: [
         new TerraDrawSelectMode({
           keyEvents: {
