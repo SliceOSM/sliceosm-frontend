@@ -19,7 +19,7 @@ import { interpolatePurples } from "d3-scale-chromatic";
 import {
   default as MaplibreGeocoder,
   MaplibreGeocoderApiConfig,
-  CarmenGeojsonFeature
+  CarmenGeojsonFeature,
 } from "@maplibre/maplibre-gl-geocoder";
 import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
 
@@ -105,7 +105,7 @@ const estimateWebMercatorTile = async (
 
 const geocoderApi = {
   reverseGeocode: async () => {
-    return {features: []};
+    return { features: [] };
   },
   forwardGeocode: async (config: MaplibreGeocoderApiConfig) => {
     const features = [];
@@ -168,12 +168,12 @@ function CreateComponent() {
   const drawRef = useRef<TerraDraw>();
 
   const [textAreaValue, setTextAreaValue] = useState<string>("");
-  const [nodesEstimate, setNodesEstimate] = useState<number>(0);
   const [regionType, setRegionType] = useState<string>();
   const [regionData, setRegionData] = useState<
     string | Polygon | MultiPolygon
   >();
   const [name, setName] = useState<string>("");
+  const [validationFailure, setValidationFailure] = useState<string>("");
 
   useEffect(() => {
     canvasPromiseRef.current = loadWebMercatorTile();
@@ -187,7 +187,10 @@ function CreateComponent() {
         nodesLimitRef.current = new Promise((resolve) => {
           resolve(j.NodesLimit);
         });
-      });
+      })
+      .catch(() => {
+        alert("could not connect to the sliceosm-api server");
+      })
   }, []);
 
   useEffect(() => {
@@ -228,7 +231,7 @@ function CreateComponent() {
     });
 
     const draw = new TerraDraw({
-      adapter: new TerraDrawMapLibreGLAdapter({ map: map, lib: maplibregl }),
+      adapter: new TerraDrawMapLibreGLAdapter({ map: map }),
       modes: [
         new TerraDrawSelectMode({
           keyEvents: {
@@ -295,11 +298,20 @@ function CreateComponent() {
         geometries,
         canvasPromiseRef.current!,
       );
+
+      const nodesLimit = await nodesLimitRef.current!;
+
+      if (estimate.nodes > nodesLimit) {
+        setValidationFailure(
+          `This area has about ${estimate.nodes} nodes, but the limit is ${nodesLimit}`,
+        );
+      } else {
+        setValidationFailure("");
+      }
       const heatmap = map.getSource("heatmap") as maplibregl.GeoJSONSource;
       if (heatmap) {
         heatmap.setData(estimate.geojson);
       }
-      setNodesEstimate(estimate.nodes);
     };
 
     draw.on("finish", () => {
@@ -335,7 +347,7 @@ function CreateComponent() {
       const uuid = await result.text();
       window.location.href = `/slice/?uuid=${uuid}`;
     } else {
-      console.log(await result.text());
+      alert(await result.text());
     }
   };
 
@@ -412,13 +424,17 @@ function CreateComponent() {
             />
             <button onClick={loadTextArea}>Load</button>
           </div>
-          <p>Estimated nodes: {nodesEstimate}</p>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="name this area..."
           />
-          <button className="create" onClick={create}>
+          <p>{validationFailure}</p>
+          <button
+            className="create"
+            onClick={create}
+            disabled={validationFailure !== ""}
+          >
             Generate Slice
           </button>
         </div>

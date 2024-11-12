@@ -50,7 +50,7 @@ function ShowComponent() {
         setName(j.SanitizedName);
         // if (j.SanitizedRegionType === "geojson") {
         //   const geojson = j.SanitizedRegionData;
-        //   const poly_coords = geojson.coordina;tes[0]
+        //   const poly_coords = geojson.coordinates[0]
         //     .slice(0, -1)
         //     .map((x: [number, number]) => [x[1], x[0]]);
         // } else if (j.SanitizedRegionType === "bbox") {
