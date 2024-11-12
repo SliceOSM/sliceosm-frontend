@@ -47,6 +47,7 @@ body {
   flex-grow: 1; 
   padding: 8px;
   width: 75%;
+  height: 100%;
 }
 
 .map {
