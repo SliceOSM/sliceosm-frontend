@@ -3,31 +3,118 @@ body {
   line-height: 1.25em;
 }
 
-.main {
+main {
   width: 100%;
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-.header {
+a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+main > header, main > footer {
   font-size: 15px;
   display: flex;
-  background-color: #ccc;
+  color: white;
+  background-color: black;
   height: 30px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 16px;
+  padding-right: 16px;
   align-items: center;
   justify-content: space-between;
 }
 
-.header a {
-  text-decoration: none;
-  color: black;
+main > header {
+  height: 60px;
+  border-bottom: 1px solid #333;
 }
 
-.header strong {
+main > footer {
+  height: 30px;
+  border-top: 1px solid #333;
+}
+
+header a, footer a {
+  color: white;
+}
+
+header strong {
   font-weight: 600;
+}
+
+header nav, footer nav {
+  display: flex;
+  gap: 1em;
+}
+
+main > footer {
+  display: flex;
+}
+
+.banner {
+  display: flex;
+  text-decoration: none;
+}
+
+.banner img {
+  height: 60px;
+  margin-left: -16px;
+}
+
+.banner div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.banner h1 { 
+  text-transform: uppercase;
+  font-size: 1.25em;
+  margin-top: 0.25em;
+}
+
+.banner a {
+  text-decoration: none;
+}
+
+.headline {
+  font-style: italic;
+}
+
+.chip {
+  font-size: 0.9em;
+  display: inline-block;
+  color: white;
+  background-color: hsl(150, 55%, 20%);
+  border-radius: 9999px;
+  padding-top: 0.2em;
+  padding-bottom: 0.05em;
+  padding-inline: 0.6em;
+}
+
+.chip::before {
+  content: '●';
+  color: #31c48d;
+  margin-right: 0.25em;
+}
+
+.neon-red {
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow:
+    0 0 0.1em #fffa,
+    0 0 0.2em #2e0,
+    0 0 0.3em #2e0;
+}
+
+.neon-pink {
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow:
+    0 0 0.1em #fff,
+    0 0 0.2em #f06,
+    0 0 0.3em #f06;
 }
 
 .content {
@@ -38,21 +125,17 @@ body {
 
 .sidebar {
   width: 25%;
-  padding-left: 8px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding: 8px;
 }
 
 .mapContainer {
   flex-grow: 1; 
-  padding: 8px;
   width: 75%;
   height: 100%;
 }
 
 .map {
   flex-grow: 1;
-  border: 1px solid #aaa;
   height: 100%;
 }
 
@@ -61,6 +144,13 @@ body {
   width: 100%;
   height: 40px;
   cursor: pointer;
+}
+
+.sidebar progress {
+  display: block;
+  width: 100%;
+  margin-top: -0.25em;
+  margin-bottom: 0.25em;
 }
 
 textarea {

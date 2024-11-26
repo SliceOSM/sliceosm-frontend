@@ -15,6 +15,7 @@ export const initializeMap = (mapContainerRef: HTMLDivElement) => {
     style: "https://americanamap.org/style.json",
     container: mapContainerRef,
     attributionControl: false,
+    hash: true,
   });
   map.addControl(
     new maplibregl.AttributionControl({

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { formatDistanceToNow, parseISO } from "date-fns";
 import cover from "@mapbox/tile-cover";
 import tilebelt from "@mapbox/tilebelt";
 import { API_ENDPOINT, initializeMap } from "./Common";
-import { Header } from "./CommonComponents";
+import Header from "./Header";
+import Footer from "./Footer";
 import maplibregl from "maplibre-gl";
 import {
   TerraDraw,
@@ -161,7 +161,6 @@ function CreateComponent() {
   // data fetched from server
   const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
   const nodesLimitRef = useRef<Promise<number>>();
-  const [updatedTimestamp, setUpdatedTimestamp] = useState<string>();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map>();
@@ -174,6 +173,7 @@ function CreateComponent() {
   >();
   const [name, setName] = useState<string>("");
   const [validationFailure, setValidationFailure] = useState<string>("");
+  // const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
 
   useEffect(() => {
     canvasPromiseRef.current = loadWebMercatorTile();
@@ -183,7 +183,6 @@ function CreateComponent() {
     fetch(`${API_ENDPOINT}/`)
       .then((x) => x.json())
       .then((j) => {
-        setUpdatedTimestamp(formatDistanceToNow(parseISO(j.Timestamp)));
         nodesLimitRef.current = new Promise((resolve) => {
           resolve(j.NodesLimit);
         });
@@ -194,6 +193,8 @@ function CreateComponent() {
   }, []);
 
   useEffect(() => {
+    if (mapRef.current) return; //stops map from intializing more than once
+    console.log("initializing map", window.location.hash);
     const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
 
@@ -273,7 +274,7 @@ function CreateComponent() {
       ],
     });
     draw.start();
-
+    
     const updateRegion = async () => {
       const geometries = draw
         .getSnapshot()
@@ -326,12 +327,12 @@ function CreateComponent() {
     });
     drawRef.current = draw;
 
-    return () => {
-      map.remove();
-      mapRef.current = undefined;
-      drawRef.current = undefined;
-    };
-  }, []);
+    // return () => {
+    //   map.remove();
+    //   mapRef.current = undefined;
+    //   drawRef.current = undefined;
+    // };
+  }, [mapRef, mapContainerRef]);
 
   const create = async () => {
     const body = {
@@ -405,17 +406,18 @@ function CreateComponent() {
   };
 
   return (
-    <div className="main">
+    <main>
       <Header />
       <div className="content">
         <div className="sidebar">
-          <p>Data updated {updatedTimestamp} ago</p>
-          <button onClick={() => startMode("rectangle")}>Rectangle</button>
-          <button onClick={() => startMode("angled-rectangle")}>
-            Angled Rectangle
-          </button>
-          <button onClick={() => startMode("polygon")}>Polygon</button>
-          <button onClick={() => startMode("circle")}>Circle</button>
+          <div style={{ margin: "1em 0" }}>
+            <button onClick={() => startMode("rectangle")}>Rectangle</button>
+            <button onClick={() => startMode("angled-rectangle")}>
+              Angled Rectangle
+            </button>
+            <button onClick={() => startMode("polygon")}>Polygon</button>
+            <button onClick={() => startMode("circle")}>Circle</button>
+          </div>
           <div>
             <p>Paste bbox or GeoJSON:</p>
             <textarea
@@ -442,7 +444,8 @@ function CreateComponent() {
           <div ref={mapContainerRef} className="map"></div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </main>
   );
 }
 
