@@ -120,7 +120,7 @@ main > footer {
 .content {
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 30px);
+  height: calc(100vh - 90px);
 }
 
 .sidebar {
