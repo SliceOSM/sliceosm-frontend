@@ -13,6 +13,7 @@ import {
   TerraDrawPolygonMode,
   TerraDrawCircleMode,
   TerraDrawMapLibreGLAdapter,
+  ValidateNotSelfIntersecting
 } from "terra-draw";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 import { interpolatePurples } from "d3-scale-chromatic";
@@ -269,7 +270,14 @@ function CreateComponent() {
         }),
         new TerraDrawRectangleMode(),
         new TerraDrawAngledRectangleMode(),
-        new TerraDrawPolygonMode(),
+        new TerraDrawPolygonMode({
+          validation: (feature, { updateType }) => {
+            if (updateType === "finish" || updateType === "commit") {
+              return ValidateNotSelfIntersecting(feature);
+            }
+            return { valid: true };
+          },
+        }),
         new TerraDrawCircleMode(),
       ],
     });
