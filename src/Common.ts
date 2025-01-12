@@ -61,3 +61,18 @@ export function getBounds(
     [maxX, maxY],
   ];
 }
+
+export function normalize(input: unknown): Polygon[] {
+  if (input.type === "Polygon") {
+    return [input];
+  } else if (input.type === "MultiPolygon") {
+    return input.coordinates.map((p) => {
+      return { type: "Polygon", coordinates: p };
+    });
+  } else if (input.type === "Feature") {
+    return normalize(input.geometry);
+  } else if (input.type === "FeatureCollection") {
+    return input.features.flatMap((f) => normalize(f));
+  }
+  return [];
+}
