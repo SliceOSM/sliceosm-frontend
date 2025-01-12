@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import cover from "@mapbox/tile-cover";
 import tilebelt from "@mapbox/tilebelt";
-import { API_ENDPOINT, initializeMap } from "./Common";
+import { API_ENDPOINT, initializeMap, normalize } from "./Common";
 import Header from "./Header";
 import Footer from "./Footer";
 import maplibregl from "maplibre-gl";
@@ -13,7 +13,7 @@ import {
   TerraDrawPolygonMode,
   TerraDrawCircleMode,
   TerraDrawMapLibreGLAdapter,
-  ValidateNotSelfIntersecting
+  ValidateNotSelfIntersecting,
 } from "terra-draw";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 import { interpolatePurples } from "d3-scale-chromatic";
@@ -190,12 +190,11 @@ function CreateComponent() {
       })
       .catch(() => {
         alert("could not connect to the sliceosm-api server");
-      })
+      });
   }, []);
 
   useEffect(() => {
     if (mapRef.current) return; //stops map from intializing more than once
-    console.log("initializing map", window.location.hash);
     const map = initializeMap(mapContainerRef.current!);
     mapRef.current = map;
 
@@ -282,7 +281,7 @@ function CreateComponent() {
       ],
     });
     draw.start();
-    
+
     const updateRegion = async () => {
       const geometries = draw
         .getSnapshot()
@@ -406,9 +405,16 @@ function CreateComponent() {
       );
     } else {
       const parsed = JSON.parse(textAreaValue);
-      parsed.properties.mode = "polygon";
       drawRef.current.clear();
-      drawRef.current.addFeatures([parsed]);
+      drawRef.current.addFeatures(
+        normalize(parsed).map((p) => {
+          return {
+            type: "Feature",
+            geometry: p,
+            properties: { mode: "polygon" },
+          };
+        }),
+      );
       drawRef.current.setMode("select");
     }
   };

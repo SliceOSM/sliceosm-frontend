@@ -2,7 +2,7 @@ export const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || "/api";
 export const FILES_ENDPOINT = import.meta.env.VITE_FILES_ENDPOINT || "/files";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Polygon, MultiPolygon } from "geojson";
+import type { Feature, Polygon, Position, MultiPolygon } from "geojson";
 
 export const initializeMap = (mapContainerRef: HTMLDivElement) => {
   if (maplibregl.getRTLTextPluginStatus() === "unavailable") {
@@ -60,4 +60,20 @@ export function getBounds(
     [minX, minY],
     [maxX, maxY],
   ];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function normalize(input: any): Polygon[] {
+  if (input.type === "Polygon") {
+    return [input];
+  } else if (input.type === "MultiPolygon") {
+    return input.coordinates.map((p:Position[][]) => {
+      return { type: "Polygon", coordinates: p };
+    });
+  } else if (input.type === "Feature") {
+    return normalize(input.geometry);
+  } else if (input.type === "FeatureCollection") {
+    return input.features.flatMap((f:Feature) => normalize(f));
+  }
+  return [];
 }
