@@ -53,13 +53,13 @@ test("normalizes a featurecollection", () => {
 });
 
 test("normalizes a feature with a polygon", () => {
-  expect(normalize({ type: "Feature", geometry: POLYGON })).toStrictEqual([
+  expect(normalize({ type: "Feature", geometry: POLYGON, properties: {} })).toStrictEqual([
     POLYGON,
   ]);
 });
 
 test("normalizes a feature with a multipolygon", () => {
-  expect(normalize({ type: "Feature", geometry: MULTIPOLYGON })).toStrictEqual([
+  expect(normalize({ type: "Feature", geometry: MULTIPOLYGON, properties: {} })).toStrictEqual([
     { type: "Polygon", coordinates: COORDS_1 },
     { type: "Polygon", coordinates: COORDS_2 },
   ]);
