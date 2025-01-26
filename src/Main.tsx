@@ -108,7 +108,7 @@ const estimateWebMercatorTile = async (
 
 const geocoderApi = {
   reverseGeocode: async () => {
-    return { type:"FeatureCollection" as "FeatureCollection", features: [] };
+    return { type:"FeatureCollection" as const, features: [] };
   },
   forwardGeocode: async (config: MaplibreGeocoderApiConfig) => {
     const features = [];
@@ -139,7 +139,7 @@ const geocoderApi = {
     }
 
     return {
-      type: "FeatureCollection" as "FeatureCollection",
+      type: "FeatureCollection" as const,
       features,
     };
   },
