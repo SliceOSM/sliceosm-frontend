@@ -12,9 +12,11 @@ import {
   TerraDrawAngledRectangleMode,
   TerraDrawPolygonMode,
   TerraDrawCircleMode,
-  TerraDrawMapLibreGLAdapter,
   ValidateNotSelfIntersecting,
 } from "terra-draw";
+import {
+  TerraDrawMapLibreGLAdapter
+} from "terra-draw-maplibre-gl-adapter";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 import { interpolatePurples } from "d3-scale-chromatic";
 import {
@@ -106,7 +108,7 @@ const estimateWebMercatorTile = async (
 
 const geocoderApi = {
   reverseGeocode: async () => {
-    return { features: [] };
+    return { type:"FeatureCollection" as "FeatureCollection", features: [] };
   },
   forwardGeocode: async (config: MaplibreGeocoderApiConfig) => {
     const features = [];
@@ -137,6 +139,7 @@ const geocoderApi = {
     }
 
     return {
+      type: "FeatureCollection" as "FeatureCollection",
       features,
     };
   },
@@ -160,12 +163,12 @@ const loadWebMercatorTile = (): Promise<Uint8ClampedArray> => {
 
 function CreateComponent() {
   // data fetched from server
-  const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>();
-  const nodesLimitRef = useRef<Promise<number>>();
+  const canvasPromiseRef = useRef<Promise<Uint8ClampedArray>>(null);
+  const nodesLimitRef = useRef<Promise<number>>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map>();
-  const drawRef = useRef<TerraDraw>();
+  const mapRef = useRef<maplibregl.Map>(null);
+  const drawRef = useRef<TerraDraw>(null);
 
   const [textAreaValue, setTextAreaValue] = useState<string>("");
   const [regionType, setRegionType] = useState<string>();

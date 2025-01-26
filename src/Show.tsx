@@ -35,7 +35,7 @@ const progressValue = (prog: number, total: number) => {
 
 function ShowComponent() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map>();
+  const mapRef = useRef<maplibregl.Map>(null);
   const [result, setResult] = useState<Result>();
   const [name, setName] = useState<string>();
 
@@ -93,7 +93,6 @@ function ShowComponent() {
     const abortController = new AbortController();
 
     const poll = async () => {
-      console.log("poll");
       const query = new URLSearchParams(location.search);
       const uuid = query.get("uuid");
       const resp = await fetch(`${API_ENDPOINT}/${uuid}`, {
