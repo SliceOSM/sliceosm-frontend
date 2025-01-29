@@ -14,9 +14,7 @@ import {
   TerraDrawCircleMode,
   ValidateNotSelfIntersecting,
 } from "terra-draw";
-import {
-  TerraDrawMapLibreGLAdapter
-} from "terra-draw-maplibre-gl-adapter";
+import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import { Polygon, MultiPolygon, Feature, FeatureCollection } from "geojson";
 import { interpolatePurples } from "d3-scale-chromatic";
 import {
@@ -25,6 +23,7 @@ import {
   CarmenGeojsonFeature,
 } from "@maplibre/maplibre-gl-geocoder";
 import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
+import { extent } from "geojson-bounds";
 
 const degeneratePolygon = (p: Polygon) => {
   if (p.coordinates.length === 0) return true;
@@ -108,7 +107,7 @@ const estimateWebMercatorTile = async (
 
 const geocoderApi = {
   reverseGeocode: async () => {
-    return { type:"FeatureCollection" as const, features: [] };
+    return { type: "FeatureCollection" as const, features: [] };
   },
   forwardGeocode: async (config: MaplibreGeocoderApiConfig) => {
     const features = [];
@@ -419,6 +418,15 @@ function CreateComponent() {
         }),
       );
       drawRef.current.setMode("select");
+      const ext = extent(parsed);
+      console.log(ext);
+      mapRef.current.fitBounds(
+        [
+          [ext[0], ext[1]],
+          [ext[2], ext[3]],
+        ],
+        { padding: 60, animate: false },
+      );
     }
   };
 
