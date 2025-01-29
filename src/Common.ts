@@ -62,13 +62,18 @@ export function getBounds(
   ];
 }
 
+function make2d(coords: Position[][]) {
+  return coords.map( r => r.map(c => c.slice(0,2) ));
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalize(input: any): Polygon[] {
   if (input.type === "Polygon") {
+    input.coordinates = make2d(input.coordinates);
     return [input];
   } else if (input.type === "MultiPolygon") {
     return input.coordinates.map((p:Position[][]) => {
-      return { type: "Polygon", coordinates: p };
+      return { type: "Polygon", coordinates: make2d(p) };
     });
   } else if (input.type === "Feature") {
     return normalize(input.geometry);

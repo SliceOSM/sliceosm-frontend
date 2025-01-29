@@ -79,3 +79,8 @@ test("normalizes a multipolygon geometry", () => {
 test("ignores non-Polygons", () => {
   expect(normalize({ type: "Point", coordinates: [0, 0] })).toStrictEqual([]);
 });
+
+
+test("normalizes a polygon geometry", () => {
+  expect(normalize({type: "Polygon", coordinates: [[[0,0,0],[1,1,0],[0,1,0],[0,0,0]]]})).toStrictEqual([{type: "Polygon", coordinates:[[[0,0],[1,1],[0,1],[0,0]]]}]);
+});
