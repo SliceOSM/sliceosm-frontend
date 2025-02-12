@@ -234,7 +234,7 @@ function CreateComponent() {
     });
 
     const draw = new TerraDraw({
-      adapter: new TerraDrawMapLibreGLAdapter({ map: map }),
+      adapter: new TerraDrawMapLibreGLAdapter({ map: map, coordinatePrecision: 8 }),
       modes: [
         new TerraDrawSelectMode({
           keyEvents: {
@@ -419,7 +419,6 @@ function CreateComponent() {
       );
       drawRef.current.setMode("select");
       const ext = extent(parsed);
-      console.log(ext);
       mapRef.current.fitBounds(
         [
           [ext[0], ext[1]],

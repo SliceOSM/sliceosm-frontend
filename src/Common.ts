@@ -63,7 +63,7 @@ export function getBounds(
 }
 
 function make2d(coords: Position[][]) {
-  return coords.map( r => r.map(c => c.slice(0,2) ));
+  return coords.map( r => r.map(c => c.slice(0,2).map(d => +d.toFixed(8)) ));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
