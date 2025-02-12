@@ -84,3 +84,7 @@ test("ignores non-Polygons", () => {
 test("normalizes a polygon geometry", () => {
   expect(normalize({type: "Polygon", coordinates: [[[0,0,0],[1,1,0],[0,1,0],[0,0,0]]]})).toStrictEqual([{type: "Polygon", coordinates:[[[0,0],[1,1],[0,1],[0,0]]]}]);
 });
+
+test("normalizes precision", () => {
+  expect(normalize({type: "Polygon", coordinates: [[[0.000000001,0,0],[1,1,0],[0,1,0],[0.000000001,0,0]]]})).toStrictEqual([{type: "Polygon", coordinates:[[[0,0],[1,1],[0,1],[0,0]]]}]);
+});
