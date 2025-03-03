@@ -88,17 +88,35 @@ main > footer {
   font-size: 0.9em;
   display: inline-block;
   color: white;
-  background-color: hsl(150, 55%, 20%);
+  background-color: hsl(0, 0%, 25%);
   border-radius: 9999px;
   padding-top: 0.2em;
   padding-bottom: 0.05em;
   padding-inline: 0.6em;
 }
 
-.chip::before {
+.chip-green {
+  background-color: hsl(150, 55%, 20%);
+}
+
+.chip-yellow {
+  background-color: hsl(45, 75%, 27%);
+}
+
+.chip-green::before {
   content: '●';
-  color: #31c48d;
+  color: hsl(158, 60%, 48%);
   margin-right: 0.25em;
+}
+
+.chip-yellow::before {
+  content: '●';
+  color: hsl(48, 100%, 50%);
+  margin-right: 0.25em;
+}
+
+.chip time[title] {
+  text-decoration: underline dotted rgba(255, 255, 255, 0.75);
 }
 
 .neon-red {

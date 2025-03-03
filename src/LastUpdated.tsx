@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatDistanceToNow, parseISO, formatISO } from "date-fns";
+import { formatDistanceToNow, differenceInSeconds, parseISO, formatISO } from "date-fns";
 import { API_ENDPOINT } from "./Common";
 
 const LastUpdated = () => {  
@@ -17,9 +17,12 @@ const LastUpdated = () => {
     // Loading state
     return <span className="chip">...</span>;
   }
+
+  const chipColor = differenceInSeconds(new Date(), updatedTimestamp) > (15 * 60)
+    ? "chip-yellow" : "chip-green";
   
   return (
-    <span className="chip">
+    <span className={`chip ${chipColor}`}>
       {"Data updated "}
       <time dateTime={formatISO(updatedTimestamp)} title={updatedTimestamp.toString()}>
         {formatDistanceToNow(updatedTimestamp)} ago
