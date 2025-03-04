@@ -369,7 +369,7 @@ function CreateComponent() {
 
   const loadTextArea = () => {
     if (!drawRef.current || !mapRef.current) return;
-    const isBbox = /^(\d+(\.\d+)?,){3}\d+(\.\d+)?$/;
+    const isBbox = /^(-?\d+(\.\d+)?,){3}-?\d+(\.\d+)?$/;
     if (isBbox.test(textAreaValue)) {
       const arr = textAreaValue.split(",");
       const minX = +arr[0];
