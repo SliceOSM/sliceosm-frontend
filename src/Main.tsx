@@ -176,6 +176,7 @@ function CreateComponent() {
   >();
   const [name, setName] = useState<string>("");
   const [validationFailure, setValidationFailure] = useState<string>("");
+  const [parsingFailure, setParsingFailure] = useState<string>("");
   // const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
 
   useEffect(() => {
@@ -369,7 +370,7 @@ function CreateComponent() {
 
   const loadTextArea = () => {
     if (!drawRef.current || !mapRef.current) return;
-    const isBbox = /^(-?\d+(\.\d+)?,){3}-?\d+(\.\d+)?$/;
+    const isBbox = /^\s*(-?\d+(\.\d+)?\s*,\s*){3}-?\d+(\.\d+)?\s*$/;
     if (isBbox.test(textAreaValue)) {
       const arr = textAreaValue.split(",");
       const minX = +arr[0];
@@ -445,10 +446,28 @@ function CreateComponent() {
           <div>
             <p>Paste bbox or GeoJSON:</p>
             <textarea
+              aria-invalid={parsingFailure !== ""}
               value={textAreaValue}
               onChange={(e) => setTextAreaValue(e.target.value)}
             />
-            <button onClick={loadTextArea}>Load</button>
+            {parsingFailure !== "" && (
+              <p>Parsing failed. {parsingFailure}</p>
+            )}
+            <button onClick={() => {
+              setParsingFailure("");
+              try {
+                loadTextArea();
+              } catch (e) {
+                console.error(e);
+                // JSON.parse throws a SyntaxError if the input is not valid JSON. Might be a bbox.
+                if (e instanceof SyntaxError) {
+                  setParsingFailure("Expected bbox format:\n minLon, minLat, maxLon, maxLat");
+                } else {
+                  // If it's not a SyntaxError, it's probably invalid GeoJSON.
+                  setParsingFailure("GeoJSON must contain valid Polygon or MultiPolygon geometries.");
+                }
+              }
+            }}>Load</button>
           </div>
           <input
             value={name}
