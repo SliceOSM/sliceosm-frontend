@@ -175,6 +175,10 @@ textarea {
   width: 100%;
 }
 
+textarea[aria-invalid="true"] {
+  border-color: red;
+}
+
 .lightbox {
   position: absolute;
   height: calc(100vh - 30px);
