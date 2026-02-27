@@ -116,46 +116,41 @@ function ShowComponent() {
       <Header />
       <div className="content">
         <div className="sidebar">
+          {name && <h2 className="slice-name">{name}</h2>}
           {result ? (
-            <div>
-              <p>Snapshot Time {result.Timestamp}</p>
-              <p>
-                <span>
-                  {result.CellsProg} / {result.CellsTotal} cells
-                </span>
-                <progress
-                  value={progressValue(result.CellsProg, result.CellsTotal)}
-                />
-              </p>
-              <p>
-                <span>
-                  {result.NodesProg} / {result.NodesTotal} nodes
-                </span>
-                <progress
-                  value={progressValue(result.NodesProg, result.NodesTotal)}
-                />
-              </p>
-              <p>
-                <span>
-                  {result.ElemsProg} / {result.ElemsTotal} elements
-                </span>
-                <progress
-                  value={progressValue(result.ElemsProg, result.ElemsTotal)}
-                />
-              </p>
-            </div>
-          ) : null}
-          {result && result.Complete ? (
-            <div>
-              <p>Elements {result.ElemsTotal}</p>
-              <p>Size {result.SizeBytes}</p>
-              <p>Time Elapsed {result.Elapsed}</p>
-              <a
-                href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`}
-                download={`${name || getUuid()}.osm.pbf`}
-              >
-                Download
-              </a>
+            <div className="progress-section">
+              <p className="status-label">{result.Complete ? "Ready" : "Processing\u2026"}</p>
+              <div className="progress-row">
+                <span className="progress-metric">Cells</span>
+                <span className="progress-frac">{result.CellsProg} / {result.CellsTotal}</span>
+                <progress value={progressValue(result.CellsProg, result.CellsTotal)} />
+              </div>
+              <div className="progress-row">
+                <span className="progress-metric">Nodes</span>
+                <span className="progress-frac">{result.NodesProg} / {result.NodesTotal}</span>
+                <progress value={progressValue(result.NodesProg, result.NodesTotal)} />
+              </div>
+              <div className="progress-row">
+                <span className="progress-metric">Elements</span>
+                <span className="progress-frac">{result.ElemsProg} / {result.ElemsTotal}</span>
+                <progress value={progressValue(result.ElemsProg, result.ElemsTotal)} />
+              </div>
+              {result.Complete && (
+                <>
+                  <dl className="stats">
+                    <dt>Elements</dt><dd>{result.ElemsTotal.toLocaleString()}</dd>
+                    <dt>File size</dt><dd>{result.SizeBytes.toLocaleString()} bytes</dd>
+                    <dt>Elapsed</dt><dd>{result.Elapsed}s</dd>
+                  </dl>
+                  <a
+                    className="download-link"
+                    href={`${FILES_ENDPOINT}/${getUuid()}.osm.pbf`}
+                    download={`${name || getUuid()}.osm.pbf`}
+                  >
+                    Download .osm.pbf
+                  </a>
+                </>
+              )}
             </div>
           ) : null}
         </div>

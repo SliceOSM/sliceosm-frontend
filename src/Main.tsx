@@ -435,7 +435,7 @@ function CreateComponent() {
       <Header />
       <div className="content">
         <div className="sidebar">
-          <div style={{ margin: "1em 0" }}>
+          <div className="mode-buttons">
             <button onClick={() => startMode("rectangle")}>Rectangle</button>
             <button onClick={() => startMode("angled-rectangle")}>
               Angled Rectangle
@@ -474,7 +474,7 @@ function CreateComponent() {
             onChange={(e) => setName(e.target.value)}
             placeholder="name this area..."
           />
-          <p>{validationFailure}</p>
+          {validationFailure && <p className="error-message">{validationFailure}</p>}
           <button
             className="create"
             onClick={create}
