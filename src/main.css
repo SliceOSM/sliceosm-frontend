@@ -1,6 +1,7 @@
 body {
-  font-family: "Helvetica", sans-serif;
-  line-height: 1.25em;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color: #222;
 }
 
 main {
@@ -20,11 +21,11 @@ main > header, main > footer {
   display: flex;
   color: white;
   background-color: black;
-  height: 30px;
   padding-left: 16px;
   padding-right: 16px;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 main > header {
@@ -33,12 +34,22 @@ main > header {
 }
 
 main > footer {
-  height: 30px;
-  border-top: 1px solid #333;
+  height: 36px;
+  border-top: 1px solid #2a2a2a;
+  font-size: 13px;
+  color: #aaa;
 }
 
 header a, footer a {
   color: white;
+}
+
+footer a {
+  color: #ccc;
+}
+
+header a:hover, footer a:hover {
+  opacity: 0.75;
 }
 
 header strong {
@@ -48,10 +59,6 @@ header strong {
 header nav, footer nav {
   display: flex;
   gap: 1em;
-}
-
-main > footer {
-  display: flex;
 }
 
 .banner {
@@ -70,10 +77,11 @@ main > footer {
   justify-content: center;
 }
 
-.banner h1 { 
+.banner h1 {
   text-transform: uppercase;
   font-size: 1.25em;
-  margin-top: 0.25em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .banner a {
@@ -82,6 +90,8 @@ main > footer {
 
 .headline {
   font-style: italic;
+  font-size: 0.78em;
+  opacity: 0.85;
 }
 
 .chip {
@@ -138,12 +148,20 @@ main > footer {
 .content {
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 90px);
+  flex: 1;
+  min-height: 0;
 }
 
 .sidebar {
   width: 25%;
-  padding: 8px;
+  min-width: 220px;
+  padding: 1em;
+  background: #f5f5f5;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
 }
 
 .mapContainer {
@@ -158,25 +176,170 @@ main > footer {
 }
 
 .create {
-  margin-top: 2rem;
   width: 100%;
-  height: 40px;
-  cursor: pointer;
+  padding: 0.6em 1em;
+  font-size: 1em;
+  font-weight: 600;
 }
 
 .sidebar progress {
   display: block;
   width: 100%;
-  margin-top: -0.25em;
-  margin-bottom: 0.25em;
+  margin-top: 0.2em;
 }
 
-textarea {
+.sidebar p {
+  font-size: 0.9em;
+}
+
+.sidebar label {
+  display: block;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.2em;
+}
+
+input, textarea {
   width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 0.35em 0.5em;
+  font: inherit;
+  font-size: 0.9em;
+  background: white;
+}
+
+input:focus, textarea:focus {
+  outline: 2px solid #cc3300;
+  outline-offset: -1px;
+  border-color: #cc3300;
 }
 
 textarea[aria-invalid="true"] {
-  border-color: red;
+  border-color: #cc0000;
+}
+
+button {
+  background: #cc3300;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 0.35em 0.75em;
+  font: inherit;
+  font-size: 0.875em;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+button:hover:not(:disabled) {
+  background: #aa2800;
+}
+
+button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.sidebar .mode-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+
+.sidebar .mode-buttons button {
+  background: white;
+  color: #333;
+  border: 1px solid #ccc;
+  font-size: 0.8em;
+}
+
+.sidebar .mode-buttons button:hover {
+  border-color: #cc3300;
+  color: #cc3300;
+  background: white;
+}
+
+.download-link {
+  display: block;
+  text-align: center;
+  background: #cc3300;
+  color: white;
+  text-decoration: none;
+  padding: 0.6em 1em;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.download-link:hover {
+  background: #aa2800;
+  color: white;
+}
+
+.slice-name {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.3;
+}
+
+.status-label {
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+}
+
+.progress-metric {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #444;
+}
+
+.progress-frac {
+  font-size: 0.75em;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2em 0.75em;
+  align-items: baseline;
+}
+
+.stats dt {
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+}
+
+.stats dd {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #222;
+}
+
+.error-message {
+  font-size: 0.85em;
+  color: #cc3300;
 }
 
 .lightbox {
