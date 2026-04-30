@@ -232,6 +232,7 @@ function CreateComponent() {
       } catch (e) {
         console.error(e);
       }
+      draw.start();
     });
 
     const draw = new TerraDraw({
@@ -283,7 +284,6 @@ function CreateComponent() {
         new TerraDrawCircleMode(),
       ],
     });
-    draw.start();
 
     const updateRegion = async () => {
       const geometries = draw
